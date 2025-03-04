@@ -19,9 +19,9 @@ const progress_percentage = computed(() => {
   if (now.value < startdate.value) {
     return 0
   }
-  return Math.floor(
-    (100 * secondsBetween(startdate.value, now.value)) /
-      secondsBetween(startdate.value, enddate.value),
+  return (
+    (100 * (now.value.toMillis() - startdate.value.toMillis())) /
+    (enddate.value.toMillis() - startdate.value.toMillis())
   )
 })
 
@@ -49,15 +49,13 @@ watch(colorstate, (color) => {
 
 const pad = (n: number): string => n.toString().padStart(2, '0')
 
-const secondsBetween = (a: DateTime, b: DateTime): number => (b.toMillis() - a.toMillis()) / 1000
-
 const progress_timer = computed(() => {
   const seconds =
     now.value > enddate.value
       ? 0
       : now.value < startdate.value
-        ? Math.floor(secondsBetween(startdate.value, enddate.value))
-        : Math.floor(secondsBetween(now.value, enddate.value)) + 1
+        ? Math.floor(enddate.value.toSeconds()) - Math.floor(startdate.value.toSeconds())
+        : Math.ceil(enddate.value.toSeconds() - now.value.toSeconds())
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
 
@@ -65,6 +63,10 @@ const progress_timer = computed(() => {
   const secLeft = pad(seconds - 60 * minutes)
 
   return hours + ':' + minLeft + ':' + secLeft
+})
+
+watch(progress_timer, (time: string) => {
+  document.title = time
 })
 
 const adjustTime = (event: Event) => {
@@ -104,6 +106,7 @@ setInterval(() => {
         :value="startdate.toLocaleString(DateTime.TIME_SIMPLE)"
         @change="adjustTime"
         @blur="editingStart = false"
+        @keyup.enter="editingStart = false"
     /></span>
     <span v-else @click="editingStart = true">{{
       startdate.toLocaleString(DateTime.TIME_SIMPLE)
@@ -116,6 +119,7 @@ setInterval(() => {
         :value="enddate.toLocaleString(DateTime.TIME_SIMPLE)"
         @change="adjustTime"
         @blur="editingEnd = false"
+        @keyup.enter="editingEnd = false"
     /></span>
     <span v-else @click="editingEnd = true">{{
       enddate.toLocaleString(DateTime.TIME_SIMPLE)
@@ -125,7 +129,9 @@ setInterval(() => {
     <div :style="{ width: progress_percentage + '%' }"></div>
   </div>
   <p class="bigtime">{{ progress_timer }}</p>
-  <h4 v-if="editingName"><input v-model="timername" @blur="editingName = false" /></h4>
+  <h4 v-if="editingName">
+    <input v-model="timername" @blur="editingName = false" @keyup.enter="editingName = false" />
+  </h4>
   <h4 v-else @click="editingName = true">{{ timername }}</h4>
 </template>
 
@@ -153,7 +159,7 @@ div.progressbar {
   div {
     background: white;
     height: 100%;
-    transition: width 0.5s;
+    transition: width 0.1s;
   }
 }
 
