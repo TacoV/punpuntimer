@@ -4,6 +4,10 @@ body {
   background: #ddd;
   color: white;
   transition: background 3s;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 }
 body.green {
   background: green;
