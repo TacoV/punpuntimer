@@ -6,6 +6,9 @@ const startdate = ref(DateTime.now().plus({ seconds: 2 }))
 const enddate = ref(DateTime.now().plus({ seconds: 12 }))
 const now = ref(DateTime.now())
 
+const startString = ref(startdate.value.toLocaleString(DateTime.TIME_SIMPLE))
+const endString = ref(enddate.value.toLocaleString(DateTime.TIME_SIMPLE))
+
 const timername = ref('Click to name your timer')
 
 const editingStart = ref(false)
@@ -26,28 +29,21 @@ const progress_percentage = computed(() => {
 })
 
 const colorstate = computed(() => {
-  const progress = progress_percentage.value
-  if (now.value < startdate.value) {
-    return ''
-  }
-  if (progress < 33) {
-    return 'green'
-  }
-  if (progress < 66) {
-    return 'yellow'
-  }
-  if (progress < 83) {
-    return 'orange'
-  }
-  return 'red'
+  return now.value < startdate.value
+    ? ''
+    : progress_percentage.value < 33
+      ? 'green'
+      : progress_percentage.value < 66
+        ? 'yellow'
+        : progress_percentage.value < 83
+          ? 'orange'
+          : 'red'
 })
 
 watch(colorstate, (color) => {
   document.body.classList.remove('green', 'yellow', 'orange', 'red')
   if (color != '') document.body.classList.add(color)
 })
-
-const pad = (n: number): string => n.toString().padStart(2, '0')
 
 const progress_timer = computed(() => {
   const seconds =
@@ -59,8 +55,8 @@ const progress_timer = computed(() => {
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
 
-  const minLeft = pad(minutes - 60 * hours)
-  const secLeft = pad(seconds - 60 * minutes)
+  const minLeft = (minutes - 60 * hours).toString().padStart(2, '0')
+  const secLeft = (seconds - 60 * minutes).toString().padStart(2, '0')
 
   return hours + ':' + minLeft + ':' + secLeft
 })
@@ -68,32 +64,18 @@ const progress_timer = computed(() => {
 watch(progress_timer, (time: string) => {
   document.title = time
 })
-
-const adjustTime = (event: Event) => {
-  if (!event || !event.target) {
-    return
-  }
-  const target = event.target as HTMLInputElement
-
-  if (target.name == 'start') {
-    const [h, m] = target.value.split(':')
-    startdate.value = DateTime.now().set({ hour: parseInt(h), minute: parseInt(m), second: 0 })
-    editingStart.value = false
-  }
-
-  if (target.name == 'end') {
-    const [h, m] = target.value.split(':')
-    enddate.value = DateTime.now().set({ hour: parseInt(h), minute: parseInt(m), second: 0 })
-    if (enddate.value < startdate.value) {
-      enddate.value = enddate.value.plus({ day: 1 })
-    }
-    editingEnd.value = false
-  }
-}
+watch(startString, (newString) => {
+  const [h, m] = newString.split(':')
+  startdate.value = DateTime.now().set({ hour: parseInt(h), minute: parseInt(m), second: 0 })
+})
+watch(endString, (newString) => {
+  const [h, m] = newString.split(':')
+  enddate.value = DateTime.now().set({ hour: parseInt(h), minute: parseInt(m), second: 0 })
+})
 
 setInterval(() => {
   now.value = DateTime.now()
-}, 50)
+}, 100)
 </script>
 
 <template>
@@ -103,8 +85,7 @@ setInterval(() => {
       <input
         type="time"
         name="start"
-        :value="startdate.toLocaleString(DateTime.TIME_SIMPLE)"
-        @change="adjustTime"
+        v-model="startString"
         @blur="editingStart = false"
         @keyup.enter="editingStart = false"
     /></span>
@@ -116,8 +97,7 @@ setInterval(() => {
       <input
         type="time"
         name="end"
-        :value="enddate.toLocaleString(DateTime.TIME_SIMPLE)"
-        @change="adjustTime"
+        v-model="endString"
         @blur="editingEnd = false"
         @keyup.enter="editingEnd = false"
     /></span>
