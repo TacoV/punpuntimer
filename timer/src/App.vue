@@ -113,6 +113,9 @@ setInterval(() => {
     <input v-model="timername" @blur="editingName = false" @keyup.enter="editingName = false" />
   </h4>
   <h4 v-else @click="editingName = true">{{ timername }}</h4>
+  <footer>
+    <a href="https://github.com/TacoV/punpuntimer"><img src="/img/github-mark-white.svg" /></a>
+  </footer>
 </template>
 
 <style scoped>
@@ -156,6 +159,13 @@ h4 {
     width: 100%;
     font-size: 16px;
     letter-spacing: 4px;
+  }
+}
+footer {
+  text-align: right;
+  img {
+    opacity: 0.2;
+    height: 2em;
   }
 }
 </style>
