@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { DateTime } from 'luxon'
+import animate from './llib/animate'
 
 const startdate = ref(DateTime.now().plus({ seconds: 2 }))
 const enddate = ref(DateTime.now().plus({ seconds: 12 }))
@@ -63,7 +64,11 @@ const progress_timer = computed(() => {
 
 watch(progress_timer, (time: string) => {
   document.title = time
+  if (time.slice(-3) == '0:00') {
+    animate('.bigtime', 'tada')
+  }
 })
+
 watch(startString, (newString) => {
   const [h, m] = newString.split(':')
   startdate.value = DateTime.now().set({ hour: parseInt(h), minute: parseInt(m), second: 0 })
